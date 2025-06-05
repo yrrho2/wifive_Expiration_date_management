@@ -37,25 +37,22 @@ exports.controller = controller;
 const service = __importStar(require("../service/service"));
 function controller(app) {
     // 기본 라우트
-    app.get('/', (req, res) => {
+    app.get('/', ((req, res) => {
         console.log("index 요청 /");
         res.send('Hello, TypeScript + Express!');
-    });
+    }));
     // 인증 코드 검증
-    app.post('/api/code/verify', (req, res) => {
-        console.log("POST /api/code/verify 요청 받음");
+    app.post('/api/code/verify', ((req, res) => {
         if (!req.body || !req.body.Code || !req.body.AppName) {
             console.log("잘못된 요청 형식");
             return res.status(400).json({
                 result: false,
-                code: 1,
-                date: new Date(),
-                message: "잘못된 요청 형식입니다. Code와 AppName이 필요합니다."
+                code: 4,
+                date: new Date(0)
             });
         }
         service.verify_expiration_code(req, res)
             .then(responseBody => {
-            console.log("Response body:", JSON.stringify(responseBody, null, 2));
             return res.status(200).json(responseBody);
         })
             .catch(error => {
@@ -67,15 +64,80 @@ function controller(app) {
                 message: "서버 내부 오류가 발생했습니다."
             });
         });
-    });
-    // 나머지 라우트들
-    app.put('/api/code/update', (req, res) => {
-        res.send('Hello, TypeScript + Express!');
-    });
-    app.delete('/api/code/delete', (req, res) => {
-        res.send('Hello, TypeScript + Express!');
-    });
-    app.post('/api/code/create', (req, res) => {
-        res.send('Hello, TypeScript + Express!');
-    });
+    }));
+    // 코드 생성
+    app.post('/api/code/create', ((req, res) => {
+        service.create_expiration_code(req, res)
+            .then(success => {
+            if (success) {
+                res.status(201).json({
+                    result: true,
+                    message: "코드가 성공적으로 생성되었습니다."
+                });
+            }
+            else {
+                res.status(400).json({
+                    result: false,
+                    message: "코드 생성에 실패했습니다."
+                });
+            }
+        })
+            .catch(error => {
+            console.error('Error in create endpoint:', error);
+            res.status(500).json({
+                result: false,
+                message: "서버 내부 오류가 발생했습니다."
+            });
+        });
+    }));
+    // 코드 수정
+    app.put('/api/code/update', ((req, res) => {
+        service.update_expiration_code(req, res)
+            .then(success => {
+            if (success) {
+                res.status(200).json({
+                    result: true,
+                    message: "코드가 성공적으로 수정되었습니다."
+                });
+            }
+            else {
+                res.status(400).json({
+                    result: false,
+                    message: "코드 수정에 실패했습니다."
+                });
+            }
+        })
+            .catch(error => {
+            console.error('Error in update endpoint:', error);
+            res.status(500).json({
+                result: false,
+                message: "서버 내부 오류가 발생했습니다."
+            });
+        });
+    }));
+    // 코드 삭제
+    app.delete('/api/code/delete', ((req, res) => {
+        service.delete_expiration_code(req, res)
+            .then(success => {
+            if (success) {
+                res.status(200).json({
+                    result: true,
+                    message: "코드가 성공적으로 삭제되었습니다."
+                });
+            }
+            else {
+                res.status(400).json({
+                    result: false,
+                    message: "코드 삭제에 실패했습니다."
+                });
+            }
+        })
+            .catch(error => {
+            console.error('Error in delete endpoint:', error);
+            res.status(500).json({
+                result: false,
+                message: "서버 내부 오류가 발생했습니다."
+            });
+        });
+    }));
 }

@@ -42,48 +42,156 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verify_expiration_code = void 0;
+exports.delete_expiration_code = exports.update_expiration_code = exports.create_expiration_code = exports.verify_expiration_code = void 0;
+const dns_1 = require("dns");
 const model = __importStar(require("../model/model"));
 const verify_expiration_code = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const requestBody = req.body;
+        // 기초 예외처리
+        if (requestBody.AppName == undefined) {
+            return {
+                result: false,
+                code: 5,
+                date: new Date()
+            };
+        }
+        else if (requestBody.Code == undefined) {
+            return {
+                result: false,
+                code: 4,
+                date: new Date()
+            };
+        }
         const code = requestBody.Code;
         const appName = requestBody.AppName;
         console.log(`검증 요청 - Code: ${code}, AppName: ${appName}`);
+        // 데이터베이스에서 code로 데이터 읽어오기
         const expiration_date_management = yield model.verify_expiration_code(code);
-        console.log(`DB 조회 결과:`, JSON.stringify(expiration_date_management, null, 2));
+        // 응답하는 body
+        let verify_response_body;
+        // 1개도 없으면 Code : 2
         if (expiration_date_management.length > 0) {
+            // Code 조회 데이터에서 값 가져오기
             const expirationDate = new Date(expiration_date_management[0].ExpirationDate);
             const dbAppName = expiration_date_management[0].AppName;
             const now = new Date();
-            // 날짜를 YYYY-MM-DD 형식으로 변환하여 비교
-            // const nowStr = now.toString().split('T')[0];
-            // const expirationStr =  expirationDate.toString().split('T')[0];
-            console.log(`만료일: ${expirationDate}, 현재: ${now}, DB 앱이름: ${dbAppName}, 요청 앱이름: ${appName}`);
-            console.log("만료되었는가? " + (expirationDate > now));
+            // 인증 실패. 기간 지남. 만료날짜 같이 반환
+            if (expirationDate <= now) {
+                verify_response_body = {
+                    result: false,
+                    code: 1,
+                    date: expirationDate
+                };
+            }
+            // console.log("만료되었는가? " + (expirationDate > now));
             const isVerified = expirationDate > now && dbAppName === appName;
-            return {
+            // 인증 성공/실패. 판단 
+            verify_response_body = {
                 result: isVerified,
                 code: isVerified ? 0 : 2,
-                date: expirationDate
+                date: isVerified ? expirationDate : new Date()
             };
         }
         else {
+            //
             console.log('코드에 해당하는 데이터가 없습니다.');
+            verify_response_body = {
+                result: false,
+                code: 2,
+                date: new Date()
+            };
+        }
+        return verify_response_body;
+    }
+    catch (error) {
+        console.error('Error in verify_expiration_code:', error);
+        if (error == dns_1.TIMEOUT) {
             return {
                 result: false,
                 code: 3,
                 date: new Date()
             };
         }
-    }
-    catch (error) {
-        console.error('Error in verify_expiration_code:', error);
-        return {
-            result: false,
-            code: 6,
-            date: new Date()
-        };
+        else {
+            return {
+                result: false,
+                code: 6,
+                date: new Date()
+            };
+        }
     }
 });
 exports.verify_expiration_code = verify_expiration_code;
+// 새로운 CRUD 서비스 함수들
+const create_expiration_code = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const requestBody = req.body;
+        // 필수 필드 검증
+        if (!requestBody.Code || !requestBody.AppName || !requestBody.ExpirationDate) {
+            console.log("필수 필드 누락");
+            return false;
+        }
+        // 현재 날짜를 registDate로 설정
+        requestBody.registDate = new Date();
+        console.log("새 몸 : " + requestBody.registDate);
+        // type이 없으면 기본값 0으로 설정
+        if (requestBody.type === undefined) {
+            requestBody.type = 1;
+        }
+        console.log(`생성 요청 - Code: ${requestBody.Code}, AppName: ${requestBody.AppName}`);
+        return yield model.create_expiration_code(requestBody);
+    }
+    catch (error) {
+        console.error('Error in create_expiration_code:', error);
+        return false;
+    }
+});
+exports.create_expiration_code = create_expiration_code;
+const update_expiration_code = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const requestBody = req.body;
+        // 필수 필드 검증
+        if (!requestBody.Code) {
+            console.log("Code 필드 누락");
+            return false;
+        }
+        console.log(`수정 요청 - Code: ${requestBody.Code}`);
+        // 기존 데이터 확인
+        const existingData = yield model.select_expiration_code(requestBody.Code);
+        if (existingData.length === 0) {
+            console.log("수정할 데이터가 없습니다.");
+            return false;
+        }
+        return yield model.update_expiration_code(requestBody);
+    }
+    catch (error) {
+        console.error('Error in update_expiration_code:', error);
+        return false;
+    }
+});
+exports.update_expiration_code = update_expiration_code;
+const delete_expiration_code = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const requestBody = req.body;
+        // 필수 필드 검증
+        if (!requestBody.Code) {
+            console.log("Code 필드 누락");
+            return false;
+        }
+        // 기존 데이터 확인
+        const existingData = yield model.select_expiration_code(requestBody.Code);
+        if (existingData.length === 0) {
+            console.log("삭제할 데이터가 없습니다.");
+            // 없긴해도 성공으로 보냄
+            return true;
+        }
+        console.log(`삭제 요청 - Code: ${requestBody.Code}`);
+        return yield model.delete_expiration_code(requestBody.Code);
+    }
+    catch (error) {
+        console.error('Error in delete_expiration_code:', error);
+        return false;
+    }
+});
+exports.delete_expiration_code = delete_expiration_code;

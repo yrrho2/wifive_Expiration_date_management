@@ -1,7 +1,7 @@
 export interface expiration_date_management {
-    Code: number;
+    Code: string;
     AppName: string;
-    address: string;
+    UserName: string;
     ExpirationDate: Date;
     registDate: Date;
     type: Number;
@@ -13,6 +13,6 @@ export interface verify_response_body {
     date: Date;
 }
 export interface verify_request_body {
-    AppName: String;
-    Code: String;
+    AppName: string;
+    Code: string;
 }
