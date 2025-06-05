@@ -65,7 +65,7 @@ const verify_expiration_code = (req, res) => __awaiter(void 0, void 0, void 0, f
         }
         const code = requestBody.Code;
         const appName = requestBody.AppName;
-        console.log(`검증 요청 - Code: ${code}, AppName: ${appName}`);
+        console.log(new Date().toISOString() + `검증 요청 - Code: ${code}, AppName: ${appName}`);
         // 데이터베이스에서 code로 데이터 읽어오기
         const expiration_date_management = yield model.verify_expiration_code(code);
         // 응답하는 body

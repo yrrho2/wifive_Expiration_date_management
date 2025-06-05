@@ -13,7 +13,7 @@ exports.delete_expiration_code = exports.update_expiration_code = exports.create
 const verify_expiration_code = (code) => __awaiter(void 0, void 0, void 0, function* () {
     // 여기서 판단할땐 앞서 예외처리를 다 한 상태
     try {
-        console.log("model code : " + code);
+        // console.log("model code : "+ code)
         const sql = `SELECT * FROM expiration_date_management as edm WHERE edm.Code = "${code}"`;
         const [rows] = yield db.execute(sql);
         return rows;
