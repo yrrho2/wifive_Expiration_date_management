@@ -1,0 +1,35 @@
+{
+  "name": "wifive_expiration_date_management",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/EDMserver.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node dist/EDMserver.js",
+    "build": "tsc",
+    "dev": "ts-node src/EDMserver.ts",
+    "clean": "rimraf dist",
+    "prebuild": "npm run clean"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.8",
+    "@types/cors": "^2.8.18",
+    "@types/express": "^5.0.2",
+    "@types/node": "^22.15.29",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "mysql2": "^3.11.4",
+    "rimraf": "^5.0.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@types/dotenv": "^6.1.1",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0"
+  }
+}
